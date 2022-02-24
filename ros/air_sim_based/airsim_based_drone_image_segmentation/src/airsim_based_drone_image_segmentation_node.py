@@ -18,11 +18,11 @@ class AirsimSemanticSegmentation:
         self.drone_name_list = list()
         self.pub_dict = dict()
 
-        # set this as a parameter in the launch file later. Here for testing
-        self.drone_name_list.append("drone_1")
-
         # set image update period
         self.img_update_period = 0.25
+
+        # set placeholder for mesh match param
+        self.mesh_match_regex = ""
 
         # create cv bridge object
         self.bridge = CvBridge()
@@ -31,6 +31,13 @@ class AirsimSemanticSegmentation:
         # start ROS node
         rospy.init_node("airsim_based_drone_image_segmentation_node")
         rospy.loginfo("started airsim_based_drone_image_segmentation_node!")
+
+        # get ros params
+        self.mesh_match_regex = rospy.get_param("~mesh_match_regex")
+        drone_name_list_str = rospy.get_param("~vehicle_name_list")
+
+        # convert drone list string representation to string
+        self.drone_name_list = drone_name_list_str.strip("][").split(", ")
 
         # create publishers for drone images
         for drone_name in self.drone_name_list:
@@ -58,15 +65,18 @@ class AirsimSemanticSegmentation:
         self.client = airsim.MultirotorClient()
         self.client.confirmConnection()
 
-        # set all object segmentation ID's to 0 to start
+        # set all object segmentation ID's to 0 to start. Do this to make
+        # sure any previously set segmentation ID's are cleared
         rospy.loginfo("setting segmentation IDs all objects to zero")
         found = self.client.simSetSegmentationObjectID("[\w]*", 0, True);
         rospy.loginfo("Done: %r" % (found))
 
         # set all template cube meshes to a segmentation object id of 20
         rospy.loginfo("setting segmentation IDs for template cubes")
-        found = self.client.simSetSegmentationObjectID("templatecube[\w]*", 40, True)
+        found = self.client.simSetSegmentationObjectID(self.mesh_match_regex, 40, True)
         rospy.loginfo("Done: %r" % found)
+
+        return found
 
     def run_node(self):
         while(not rospy.is_shutdown()):
@@ -118,5 +128,9 @@ class AirsimSemanticSegmentation:
 
 if(__name__ == "__main__"):
     airsim_seg = AirsimSemanticSegmentation()
-    airsim_seg.start_node()
-    airsim_seg.run_node()
+    start_status = airsim_seg.start_node()
+
+    if(start_status):
+        airsim_seg.run_node()
+    else:
+        rospy.logerr("could not find any meshes matching provided regex!")
