@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Author: Trevor Sherrard
 # Since: Feburary 24, 2022
 # Project: UAV Based Post Obstruction Assesment Captsone Project
