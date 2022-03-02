@@ -20,9 +20,6 @@ class AirsimSemanticSegmentation:
         self.drone_name_list = list()
         self.pub_dict = dict()
 
-        # set image update period
-        self.img_update_period = 0.25
-
         # set placeholder for mesh match param
         self.mesh_match_regex = ""
 
