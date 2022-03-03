@@ -9,16 +9,28 @@
 import airsim
 import rospy
 import numpy as np
+import rospkg
+import tensorflow as tf
+import keras
 
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 class DeepLearningBasedSegmentaion:
     def __init__(self):
+        self.pkg_path = ""
         self.image_pub_topic_pat = "deeplearning_based_drone_image_segmentation/seg_image/cam_{}"
         self.camera_name_list = list()
         self.pub_dict = dict()
 
+        # create placeholder for UNET model object
+        self.model = None
+
+        # set image height and width
+        self.img_height = 800
+        self.img_width = 1200
+
+        # declare image type to be used.
         self.image_type = airsim.ImageType.Scene
 
         # create cv bridge object
@@ -50,6 +62,14 @@ class DeepLearningBasedSegmentaion:
             self.pub_dict[camera_name] = temp_pub
 
         rospy.loginfo("created publishers")
+
+        # get package path
+        rospack = rospkg.RosPack()
+        pkg_path = rospack.get_path("deeplearning_based_drone_image_segmentation")
+        model_path = pkg_path + "/models/saved_unet_model.h5"
+
+        # load UNET model
+        self.model = keras.models.load_model(model_path)
 
         # create airsim client
         self.client = airsim.MultirotorClient()
@@ -85,12 +105,26 @@ class DeepLearningBasedSegmentaion:
             self.pub_inference_image(seg_image, camera_name)
 
     def image_inference(self, image):
-        return image
+        # load image as dataset
+        image = tf.convert_to_tensor(image)
+        image = tf.reshape(image, (self.img_height, self.img_width, 3))
+        dataset = tf.data.Dataset.from_tensors(image)
+        dataset = dataset.batch(1)
+
+        # try to make prediction
+        predictions = self.model.predict(dataset)
+        predictions = np.argmax(predictions, axis=3)
+
+        # convert dtype from int64 to uint8
+        single_channel_pred = predictions[0]
+        single_channel_pred = single_channel_pred.astype("uint8")
+
+        return single_channel_pred
 
     def pub_inference_image(self, infer_image, camera_name):
         # try to convert image to ROS message format and publish
         try:
-            infer_image_msg = self.bridge.cv2_to_imgmsg(infer_image, encoding="bgr8")
+            infer_image_msg = self.bridge.cv2_to_imgmsg(infer_image, encoding="mono8")
             self.pub_dict[camera_name].publish(infer_image_msg)
         except CvBridgeError as cv_err:
             rospy.logerr("could not generated ros message for segmentation image "

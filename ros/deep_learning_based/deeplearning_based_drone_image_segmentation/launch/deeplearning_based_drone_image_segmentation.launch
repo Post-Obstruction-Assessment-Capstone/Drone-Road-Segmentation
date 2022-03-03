@@ -1,5 +1,5 @@
 <launch>
     <node pkg="deeplearning_based_drone_image_segmentation" name="deeplearning_based_drone_image_segmentation_node" type="deeplearning_based_drone_image_segmentation_node.py" output="screen">
-        <param name="camera_name_list" value="[0, 1, 2]" />
+        <param name="camera_name_list" value="[front_center_custom, front_left_custom, front_right_custom]" />
     </node>
 </launch>
