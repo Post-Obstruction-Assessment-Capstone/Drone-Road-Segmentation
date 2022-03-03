@@ -8,8 +8,8 @@ import tensorflow as tf
 import keras
 
 # declare file paths
-model_file_loc = "../models/saved_unet_model.h5"
-test_image_loc = "../dataset/semantic_drone_dataset/original_images/000.jpg"
+model_file_loc = "../../models/saved_unet_model.h5"
+test_image_loc = "../../dataset/semantic_drone_dataset/original_images/000.jpg"
 
 # declare goal image sizes
 img_height = 800
@@ -43,8 +43,14 @@ def run_inference(image_loc):
 
     # run inference
     pred = model.predict(dataset)
+
+    # extract results
     predictions = np.argmax(pred, axis=3)
-    cv2.imshow("test", predictions)
+    single_channel_pred = predictions[0]
+    single_channel_pred = single_channel_pred.astype("uint8")
+
+    # show mono mask image
+    cv2.imshow("test", single_channel_pred)
     cv2.waitKey(0)
 
 if(__name__ == "__main__"):
