@@ -30,8 +30,25 @@ The labeled images are constructed as masks of the original images. Each of thes
 on a value corresponding to the particular class said labeled object/region belongs to. The mapping between
 
 ### Model Training and Evaluation
+The U-NET model can be trained by executing the following command:
+
+```commandline
+python3 train_model.py
+```
+Once the training process is complete, the model will be saved to the models directory. Please change training
+hyperparamters defined at the top of the script if needed.
 
 ### Deployment Via ROS node
+To run the model trained in the previous step within a ROS node, please run the following command:
+
+```commandline
+roslaunch deeplearning_based_drone_image_segmentation deeplearning_based_drone_image_segmentation.launch
+```
+
+This will start a node that will continually grab frames from the cameras specified within the launch file. 
+Please change these camera names as needed. **NOTE:** this launch file assumes the model to load for inference
+purposes is stored in the models directory under the deeplearning_based_drone_image_segmentation ROS package
+structure. If you train a new model, make sure to move a copy of it to this aforementioned directory.
 
 ## Airsim Based Segmentation Implementation
 The airsim simulation environment provides functionality to extract ground truth segmentation images from cameras
