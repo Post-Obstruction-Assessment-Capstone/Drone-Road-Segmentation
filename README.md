@@ -50,6 +50,45 @@ Please change these camera names as needed. **NOTE:** this launch file assumes t
 purposes is stored in the models directory under the deeplearning_based_drone_image_segmentation ROS package
 structure. If you train a new model, make sure to move a copy of it to this aforementioned directory.
 
+### Published Data Format
+For the deep learning implementation, the node will publish segmentation image results to topics with the pattern:
+
+```commandline
+deeplearning_based_drone_image_segmentation/seg_image/cam_{cam_name}
+```
+
+Where cam_name is one of the camera names defined in deeplearning_based_drone_image_segmentation.launch.
+
+These segmentation images are images in which each pixel value corresponds to a particular class detected within the image itself. 
+For the deep learning implementation, this class mapping can be seen in the table below:
+
+| Class       | Pixel Value |
+|-------------|-------------|
+| Unlabeled   | 0           |
+| Paved-Area  | 1           |
+| Dirt        | 2           |
+| Grass       | 3           |
+| Gravel      | 4           |
+| Water       | 5           |
+| Rocks       | 6           |
+| Pool        | 7           |
+| Vegetation  | 8           |
+| Roof        | 9           |
+| Wall        | 10          |
+| Window      | 11          |
+| Door        | 12          |
+| Fence       | 13          |
+| Fence-pole  | 14          |
+| Person      | 15          |
+| Dog         | 16          |
+| Car         | 17          |
+| Bicycle     | 18          |
+| Tree        | 19          |
+| Bald-tree   | 20          |
+| AR-marker   | 21          |
+| Obstacle    | 22          |
+| Conflicting | 23          |
+
 ## Airsim Based Segmentation Implementation
 The airsim simulation environment provides functionality to extract ground truth segmentation images from cameras
 on the UAV itself. Meshes to be segmented in images are selected by their names via a regular expression. A ROS node 
@@ -62,3 +101,15 @@ roslaunch airsim_based_drone_image_segmentation airsim_based_drone_image_segment
 
 in the launch file itself, the mesh name matching regex and names of vehicles to extract images from are set as ROS params. 
 Please change these as necessary. 
+
+### Published Data Format
+For the airsim based implementation, the node will publish segmentation images to topics with the pattern:
+
+```commandline
+airsim_based_drone_image_segmentation/vn_{vehicle_name}/cam_{cam_name}
+```
+
+Where vehicle_name is one of the vehicle names set in airsim_based_drone_image_segmentation.launch, and cam_name
+is set to 0, 1 or 2. The images published will have a color mapping for each of the classes detected within the image. 
+This color mapping will need to be manually set by the user by assigning a segmentation ID in the script
+for individual meshes that should be detected. More to come on this.
